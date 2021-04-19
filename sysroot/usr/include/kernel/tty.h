@@ -7,6 +7,6 @@ void terminal_initialize(void);
 void terminal_putchar(char c);
 void terminal_write(const char* data, size_t size);
 void terminal_writestring(const char* data);
-void terminal_setCursorPos(size_t x, size_t y);
+void terminal_setCursorPos(unsigned short pos);
 
 #endif
