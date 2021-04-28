@@ -54,7 +54,8 @@ int kernel_main(multiboot_info_t* mbd, unsigned int magic){
 			*address++;
 		}
 	}
-		
+	
+	printf("Passed the kernelSize!");
 
 	//! get memory size in KB
 	uint32_t memSize = 1024 + mbd->mem_lower + mbd->mem_upper*64;
@@ -82,6 +83,7 @@ int kernel_main(multiboot_info_t* mbd, unsigned int magic){
 			break;
 
 		//! display entry
+
 		// DebugPrintf ("region %i: start: 0x%x%x length (bytes): 0x%x%x type: %i (%s)\n", i, 
 		// 	region[i].startHi, region[i].startLo,
 		// 	region[i].sizeHi,region[i].sizeLo,
@@ -105,7 +107,8 @@ int kernel_main(multiboot_info_t* mbd, unsigned int magic){
 	// DebugSetColor (0x12);
 
 	uint32_t* p = (uint32_t*)pmmngr_alloc_block ();
-	// DebugPrintf ("\np allocated at 0x%x", p);
+	printf("p allocated at 0x%llx", p);
+	// DebugPrintf ("\np allocated at 0x%lx", p);
 
 	uint32_t* p2 = (uint32_t*)pmmngr_alloc_blocks (2);
 	// DebugPrintf ("\nallocated 2 blocks for p2 at 0x%x", p2);
