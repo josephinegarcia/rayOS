@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include <kernel/tty.h>
-//#include <drivers/io.h>
+#include <drivers/io.h>
 
 #include "vga.h"
 
@@ -62,10 +62,10 @@ void terminal_writestring(const char* data) {
 	terminal_write(data, strlen(data));
 }
 
-void terminal_setCursorPos(size_t x, size_t y){
-	unsigned short pos = (unsigned short) calculateCoords(x,y);
-	outb(0x3D4,0x0E);
-	outb(0x3D5, ((pos >> 8) & 0xFF));
-	outb(0x3D4,0x0F);
-	outb(0x3D5, pos & 0xFF);
-}
+//void terminal_setCursorPos(size_t x, size_t y){
+//	unsigned short pos = (unsigned short) calculateCoords(x,y);
+//	outb(0x3D4,0x0E);
+//	outb(0x3D5, ((pos >> 8) & 0xFF));
+//	outb(0x3D4,0x0F);
+//	outb(0x3D5, pos & 0xFF);
+//}
