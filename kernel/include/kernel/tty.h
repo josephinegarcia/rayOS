@@ -7,6 +7,10 @@ void terminal_initialize(void);
 void terminal_putchar(char c);
 void terminal_write(const char* data, size_t size);
 void terminal_writestring(const char* data);
-void terminal_setCursorPos(unsigned short pos);
+void terminal_setCursorPos(size_t x, size_t y);
+size_t *get_curr_term_row(void);
+size_t *get_curr_term_col(void);
+void set_term_col(size_t col);
+void set_term_row(size_t row);
 
 #endif

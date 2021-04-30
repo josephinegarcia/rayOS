@@ -1,2 +1,2 @@
 #!/bin/sh
-echo i686-myos
+echo i686-rayos

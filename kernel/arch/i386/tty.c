@@ -15,6 +15,22 @@ size_t calculateCoords(size_t x, size_t y){
 	return y * VGA_WIDTH + x;
 }
 
+size_t *get_curr_term_row(void){
+	return &terminal_row;
+}
+
+void set_term_row(size_t row){
+	terminal_row = row;
+}
+
+size_t *get_curr_term_col(void){
+	return &terminal_column;
+}
+
+void set_term_col(size_t col){
+	terminal_column = col;
+}
+
 void terminal_initialize(void) {
 	terminal_row = 0;
 	terminal_column = 0;
@@ -56,24 +72,8 @@ void terminal_writestring(const char* data) {
 	terminal_write(data, strlen(data));
 }
 
-int terminal_decrementFrameBuffer(){
-	return --fb_index;
-}
-
-int terminal_newLineFrameBuffer(){
-	fb_index = ((fb_index / 80) + 1) * 80;
-	return fb_index;
-}
-
-int terminal_getFrameBuffer(){
-	return fb_index;
-}
-
-int terminal_updateFrameBuffer(){
-	return ++fb_index;
-}
-
-void terminal_setCursorPos(unsigned short pos){
+void terminal_setCursorPos(size_t x, size_t y){
+	unsigned short pos = (unsigned short) calculateCoords(x,y);
 	outb(FB_COMMAND_PORT, FB_HIGH_BYTE_COMMAND);
 	outb(FB_DATA_PORT, ((pos >> 8) & 0x00FF));
 	outb(FB_COMMAND_PORT, FB_LOW_BYTE_COMMAND);
