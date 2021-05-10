@@ -4,6 +4,7 @@
 #include <kernel/idt.h>
 #include <kernel/multiboot.h>
 #include <kernel/memmgr_phys.h>
+//#include <>
 
 //! format of a memory region
 struct memory_region {
@@ -37,7 +38,8 @@ int kernel_main(multiboot_info_t* mbd, unsigned int magic){
   	// if (CHECK_FLAG (mbd->flags, 0))
     // 	printf ("mem_lower = %uKB, mem_upper = %uKB\n", (unsigned) mbd->mem_lower, (unsigned) mbd->mem_upper);
 
-	// printf("CHECK COMPLETE!");
+	// //printf("0x%u\n", (unsigned) mbd->flags);
+	// printf("CHECK COMPLETE!\n");
 
 	// //! get kernel size passed from boot loader
 	// uint32_t kernelSize=0;
@@ -54,18 +56,17 @@ int kernel_main(multiboot_info_t* mbd, unsigned int magic){
 	// 		*address++;
 	// 	}
 	// }
-	
-	// printf("Passed the kernelSize!");
 
 	// //! get memory size in KB
 	// uint32_t memSize = 1024 + mbd->mem_lower + mbd->mem_upper*64;
+	// printf("Memory Size in KB:%u\n", memSize);
 
 	// //! initialize the physical memory manager
 	// //! we place the memory bit map used by the PMM at the end of the kernel in memory
 	// pmmngr_init (memSize, 0x100000 + kernelSize*512);
 
-	// // DebugPrintf("pmm initialized with %i KB physical memory; memLo: %i memHi: %i\n\n",
-	// // 	memSize,bootinfo->m_memoryLo,bootinfo->m_memoryHi);
+	// //printf("pmm initialized with %i KB physical memory; memLo: %i memHi: %i\n\n",
+	// //	memSize,mbd->mem_lower,mbd->mem_upper);
 
 	// // DebugSetColor (0x19);
 	// // DebugPrintf ("Physical Memory Map:\n");
@@ -107,10 +108,11 @@ int kernel_main(multiboot_info_t* mbd, unsigned int magic){
 	// // DebugSetColor (0x12);
 
 	// uint32_t* p = (uint32_t*)pmmngr_alloc_block ();
-	// printf("p allocated at 0x%llx", p);
+	// printf("p allocated at 0x%llx\n", p);
 	// // DebugPrintf ("\np allocated at 0x%lx", p);
 
 	// uint32_t* p2 = (uint32_t*)pmmngr_alloc_blocks (2);
+	// printf("allocated 2 blocks for p2 at 0x%llx\n", p2);
 	// // DebugPrintf ("\nallocated 2 blocks for p2 at 0x%x", p2);
 
 	// pmmngr_free_block (p);
