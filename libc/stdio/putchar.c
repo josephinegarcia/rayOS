@@ -4,12 +4,10 @@
 #include <kernel/tty.h>
 #endif
 
-int putchar(int ic) {
+int putchar(char ic) {
 #if defined(__is_libk)
 	char c = (char) ic;
-	char k = '*';
 	if(c == '\n'){
-		//terminal_write(&k, sizeof(k));
 		set_term_col(0);
 		terminal_setCursorPos(0, ++(*get_curr_term_row()));
 	}else{
