@@ -6,10 +6,10 @@ mkdir -p isodir
 mkdir -p isodir/boot
 mkdir -p isodir/boot/grub
 
-cp sysroot/boot/rayos.kernel isodir/boot/rayos.kernel
+cp sysroot/boot/myos.kernel isodir/boot/myos.kernel
 cat > isodir/boot/grub/grub.cfg << EOF
-menuentry "rayos" {
-	multiboot /boot/rayos.kernel
+menuentry "myos" {
+	multiboot /boot/myos.kernel
 }
 EOF
-grub-mkrescue -o rayos.iso isodir
+grub-mkrescue -o myos.iso isodir
