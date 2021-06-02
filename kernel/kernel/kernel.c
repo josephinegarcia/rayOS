@@ -4,6 +4,7 @@
 #include <kernel/idt.h>
 #include <kernel/multiboot.h>
 #include <kernel/memmgr_phys.h>
+#include <kernel/kheap.h>
 
 //! format of a memory region
 struct memory_region
@@ -27,116 +28,117 @@ char *strMemoryTypes[] = {
 
 #define CHECK_FLAG(flags, bit) ((flags) & (1 << (bit)))
 
-int kernel_main(multiboot_info_t *mbd, unsigned int magic)
+int kernel_main(multiboot_info_t *mbd, unsigned int magic, unsigned int kernel_size)
 {
-	printf("HELLO USER WORLD!!");
-	// gdt_install();
-	// idt_install();
-	// isrs_install();
-	// irq_install();
-	// __asm__ __volatile__("sti");
-	// initialize_serial_port(SERIAL_COM1_BASE, 2);
-	// keyboard_install();
-	// terminal_initialize();
+	terminal_initialize();
 
-	// if (MULTIBOOT_BOOTLOADER_MAGIC != magic)
-	// 	printf("Invalid magic number: 0x%lx\n", (unsigned)magic);
+	gdt_install();
+	idt_install();
 
-	// //  /* Are mem_* valid? */
-	// if (CHECK_FLAG(mbd->flags, 0))
-	// 	printf("mem_lower = %uKB, mem_upper = %uKB\n", (unsigned)mbd->mem_lower, (unsigned)mbd->mem_upper);
+	kmalloc_early_init(EARLY_KMALLOC_START, EARLY_KMALLOC_END);
+	paging_init();
 
-	// if (CHECK_FLAG(mbd->flags, 1))
-	// 	printf("boot_device = 0x%lx\n", (unsigned)mbd->boot_device);
+	isrs_install();
+	irq_install();
+	__asm__ __volatile__("sti");
+	initialize_serial_port(SERIAL_COM1_BASE, 2);
+	keyboard_install();
 
-	// /* Is the command line passed? */
-	// if (CHECK_FLAG(mbd->flags, 2))
-	// 	printf("cmdline = %s\n", (char *)mbd->cmdline);
+	if (MULTIBOOT_BOOTLOADER_MAGIC != magic)
+		printf("Invalid magic number: 0x%lx\n", (unsigned)magic);
 
-	// /* Are mods_* valid? */
-	// if (CHECK_FLAG(mbd->flags, 3))
-	// {
-	// 	multiboot_module_t *mod;
-	// 	int i;
+	//  /* Are mem_* valid? */
+	if (CHECK_FLAG(mbd->flags, 0))
+		printf("mem_lower = %uKB, mem_upper = %uKB\n", (unsigned)mbd->mem_lower, (unsigned)mbd->mem_upper);
 
-	// 	printf("mods_count = %d, mods_addr = 0x%lx\n",
-	// 		   (int)mbd->mods_count, (int)mbd->mods_addr);
-	// 	for (i = 0, mod = (multiboot_module_t *)mbd->mods_addr;
-	// 		 i < mbd->mods_count;
-	// 		 i++, mod++)
-	// 		printf(" mod_start = 0x%lx, mod_end = 0x%lx, cmdline = %s\n",
-	// 			   (unsigned)mod->mod_start,
-	// 			   (unsigned)mod->mod_end,
-	// 			   (char *)mod->cmdline);
-	// }
+	if (CHECK_FLAG(mbd->flags, 1))
+		printf("boot_device = 0x%lx\n", (unsigned)mbd->boot_device);
 
-	// /* Bits 4 and 5 are mutually exclusive! */
-	// if (CHECK_FLAG(mbd->flags, 4) && CHECK_FLAG(mbd->flags, 5))
-	// {
-	// 	printf("Both bits 4 and 5 are set.\n");
-	// 	return;
-	// }
+	/* Is the command line passed? */
+	if (CHECK_FLAG(mbd->flags, 2))
+		printf("cmdline = %s\n", (char *)mbd->cmdline);
 
-	// /* Is the symbol table of a.out valid? */
-	// if (CHECK_FLAG(mbd->flags, 4))
-	// {
-	// 	multiboot_aout_symbol_table_t *multiboot_aout_sym = &(mbd->u.aout_sym);
+	/* Are mods_* valid? */
+	if (CHECK_FLAG(mbd->flags, 3))
+	{
+		multiboot_module_t *mod;
+		int i;
 
-	// 	printf("multiboot_aout_symbol_table: tabsize = 0x%0x, "
-	// 		   "strsize = 0x%lx, addr = 0x%lx\n",
-	// 		   (unsigned)multiboot_aout_sym->tabsize,
-	// 		   (unsigned)multiboot_aout_sym->strsize,
-	// 		   (unsigned)multiboot_aout_sym->addr);
-	// }
+		printf("mods_count = %d, mods_addr = 0x%lx\n",
+			   (int)mbd->mods_count, (int)mbd->mods_addr);
+		for (i = 0, mod = (multiboot_module_t *)mbd->mods_addr;
+			 i < mbd->mods_count;
+			 i++, mod++)
+			printf(" mod_start = 0x%lx, mod_end = 0x%lx, cmdline = %s\n",
+				   (unsigned)mod->mod_start,
+				   (unsigned)mod->mod_end,
+				   (char *)mod->cmdline);
+	}
 
-	// /* Is the section header table of ELF valid? */
-	// if (CHECK_FLAG(mbd->flags, 5))
-	// {
-	// 	multiboot_elf_section_header_table_t *multiboot_elf_sec = &(mbd->u.elf_sec);
+	/* Bits 4 and 5 are mutually exclusive! */
+	if (CHECK_FLAG(mbd->flags, 4) && CHECK_FLAG(mbd->flags, 5))
+	{
+		printf("Both bits 4 and 5 are set.\n");
+		return;
+	}
 
-	// 	printf("multiboot_elf_sec: num = %u, size = 0x%lx,"
-	// 		   " addr = 0x%lx, shndx = 0x%lx\n",
-	// 		   (unsigned)multiboot_elf_sec->num, (unsigned)multiboot_elf_sec->size,
-	// 		   (unsigned)multiboot_elf_sec->addr, (unsigned)multiboot_elf_sec->shndx);
-	// }
+	/* Is the symbol table of a.out valid? */
+	if (CHECK_FLAG(mbd->flags, 4))
+	{
+		multiboot_aout_symbol_table_t *multiboot_aout_sym = &(mbd->u.aout_sym);
 
-	// /* Are mmap_* valid? */
-	// if (CHECK_FLAG(mbd->flags, 6))
-	// {
-	// 	multiboot_memory_map_t *mmap;
+		printf("multiboot_aout_symbol_table: tabsize = 0x%0x, "
+			   "strsize = 0x%lx, addr = 0x%lx\n",
+			   (unsigned)multiboot_aout_sym->tabsize,
+			   (unsigned)multiboot_aout_sym->strsize,
+			   (unsigned)multiboot_aout_sym->addr);
+	}
 
-	// 	printf("mmap_addr = 0x%lx, mmap_length = 0x%lx\n",
-	// 		   (unsigned)mbd->mmap_addr, (unsigned)mbd->mmap_length);
-	// 	for (mmap = (multiboot_memory_map_t *)mbd->mmap_addr;
-	// 		 (unsigned long)mmap < mbd->mmap_addr + mbd->mmap_length;
-	// 		 mmap = (multiboot_memory_map_t *)((unsigned long)mmap + mmap->size + sizeof(mmap->size)))
-	// 		printf(" size = 0x%lx, base_addr = 0x%lx%08lx,"
-	// 			   " length = 0x%lx%08lx, type = %s\n",
-	// 			   (unsigned)mmap->size,
-	// 			   (unsigned)(mmap->addr >> 32),
-	// 			   (unsigned)(mmap->addr & 0xffffffff),
-	// 			   (unsigned)(mmap->len >> 32),
-	// 			   (unsigned)(mmap->len & 0xffffffff),
-	// 			   strMemoryTypes[(unsigned)mmap->type-1]);
-	// }
+	/* Is the section header table of ELF valid? */
+	if (CHECK_FLAG(mbd->flags, 5))
+	{
+		multiboot_elf_section_header_table_t *multiboot_elf_sec = &(mbd->u.elf_sec);
 
-	// //! get kernel size passed from boot loader
-	// uint32_t kernelSize = mbd->mmap_length;
+		printf("multiboot_elf_sec: num = %u, size = 0x%lx,"
+			   " addr = 0x%lx, shndx = 0x%lx\n",
+			   (unsigned)multiboot_elf_sec->num, (unsigned)multiboot_elf_sec->size,
+			   (unsigned)multiboot_elf_sec->addr, (unsigned)multiboot_elf_sec->shndx);
+	}
 
-	// //Kernel Size should be the image size overall
-	// if(kernelSize > 0)
-	// 	printf("\nPassed the kernelSize %i\n", kernelSize);
+	/* Are mmap_* valid? */
+	if (CHECK_FLAG(mbd->flags, 6))
+	{
+		multiboot_memory_map_t *mmap;
 
-	// //! get memory size in KB
+		printf("mmap_addr = 0x%lx, mmap_length = 0x%lx\n",
+			   (unsigned)mbd->mmap_addr, (unsigned)mbd->mmap_length);
+		for (mmap = (multiboot_memory_map_t *)mbd->mmap_addr;
+			 (unsigned long)mmap < mbd->mmap_addr + mbd->mmap_length;
+			 mmap = (multiboot_memory_map_t *)((unsigned long)mmap + mmap->size + sizeof(mmap->size)))
+			printf(" size = 0x%lx, base_addr = 0x%lx%08lx,"
+				   " length = 0x%lx%08lx, type = %s\n",
+				   (unsigned)mmap->size,
+				   (unsigned)(mmap->addr >> 32),
+				   (unsigned)(mmap->addr & 0xffffffff),
+				   (unsigned)(mmap->len >> 32),
+				   (unsigned)(mmap->len & 0xffffffff),
+				   strMemoryTypes[(unsigned)mmap->type-1]);
+	}
+
+	//Kernel Size should be the image size overall
+	if(kernel_size > 0)
+		printf("\nPassed the kernelSize %i\n", kernel_size);
+
+	//! get memory size in KB
 	// uint32_t memSize = 1024 + mbd->mem_lower + mbd->mem_upper*64;
 
 	// //! initialize the physical memory manager
 	// //! we place the memory bit map used by the PMM at the end of the kernel in memory
-	// pmmngr_init (memSize, 0x100000 + kernelSize*512);
+	// pmmngr_init (memSize, 0xC0000000 + kernel_size*512);
 	// printf("pmm initialized with %i KB physical memory; memLo: %i memHi: %i\n\n", memSize, mbd->mem_lower, mbd->mem_upper);
 
 	// //! deinit the region the kernel is in as its in use
-	// pmmngr_deinit_region (0x100000, kernelSize*512);
+	//pmmngr_deinit_region (0x100000, kernel_size*512);
 
 	// printf("\npmm regions initialized: %i allocation blocks; used or reserved blocks: %i\nfree blocks: %i\n",
 	// 	pmmngr_get_block_count (),  pmmngr_get_use_block_count (), pmmngr_get_free_block_count () );
@@ -153,7 +155,7 @@ int kernel_main(multiboot_info_t *mbd, unsigned int magic)
 	// printf("\nUnallocated p to free block 1. p is reallocated to 0x%x", p);
 
 	// pmmngr_free_block (p);
-	// pmmngr_free_blocks (p2, 2);
-
+	// pmmngr_free_blocks (p2, 2);	
+	for(;;) __asm__ __volatile__("hlt");
 	return 0;
 }
