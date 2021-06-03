@@ -412,6 +412,7 @@ irqcommonstub:
     pop ds
     popad
     add esp, 8
+    ;sti ;enable interrupts
     iret
 
 commoninterrupthandler:               ; the common parts of the generic interrupt handler
@@ -444,6 +445,8 @@ commoninterrupthandler:               ; the common parts of the generic interrup
 
     ; restore the esp
     add esp, 8
+    
+    ;sti ;enable interrupts
 
     ; return to the code that got interrupted
     iret

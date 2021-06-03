@@ -93,6 +93,8 @@ void idt_install(){
         memset(&idt, 0, sizeof(struct idt_entry) * 256);
 
         /* Add any new ISRs to the IDT here using idt_set_gate */
+        isrs_install();
+	    irq_install();
 
         /* Points the processor's internal register to the new IDT */
         load_idt();
@@ -264,8 +266,8 @@ void irq_handler(struct regs *r)
 
 void interrupt_handler(struct regs *r){
         if(r->int_no < 32){
-                printf("ERROR HANDLER HERE! %d", r->err_code);
-                for(;;);
+            printf("ERROR HANDLER HERE! %d", r->err_code);
+            for(;;);
         }
 }
 

@@ -38,8 +38,6 @@ int kernel_main(multiboot_info_t *mbd, unsigned int magic, unsigned int kernel_s
 	kmalloc_early_init(EARLY_KMALLOC_START, EARLY_KMALLOC_END);
 	paging_init();
 
-	isrs_install();
-	irq_install();
 	__asm__ __volatile__("sti");
 	initialize_serial_port(SERIAL_COM1_BASE, 2);
 	keyboard_install();

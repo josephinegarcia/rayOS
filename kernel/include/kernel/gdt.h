@@ -44,6 +44,7 @@
                        SEG_LONG(0) | SEG_SIZE(1) | SEG_GRAN(1) | \
                      SEG_PRIV(3) | SEG_DATA_RDWR
 
+
 struct gdt_entry{
     unsigned short limit_low;
     unsigned short base_low;
@@ -68,32 +69,29 @@ void gdt_install()
     gp.limit = (sizeof(struct gdt_entry) * 3) - 1;
     gp.base = &gdt;
 
-    gdt_set_gate(0, 0, 0, 0);
-    gdt_set_gate(1, 0, 0x000FFFFF, GDT_CODE_PL0); //kernel code seg PL0
-    gdt_set_gate(2, 0, 0x000FFFFF, GDT_DATA_PL0); //kernel data seg PL0
-    gdt_set_gate(3, 0, 0x000FFFFF, GDT_CODE_PL3); // User Mode Code Seg PL3
-    gdt_set_gate(4, 0, 0x000FFFFF, GDT_DATA_PL3); // User Mode Data Seg PL3
-    
+    gdt_set_gate(0, 0, 0, 0, 0);
+
+    gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF);
+    gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF);
+    gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF);
+    gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF);
     gdt_flush();
 }
 
-void gdt_set_gate(int num, unsigned long base, unsigned long limit, unsigned char flags)
+void gdt_set_gate(int num, unsigned long base, unsigned long limit, unsigned char access, unsigned char gran)
 {
-  uint64_t descriptor = 0;
+    /* Setup the descriptor base address */
+    gdt[num].base_low = (base & 0xFFFF);
+    gdt[num].base_middle = (base >> 16) & 0xFF;
+    gdt[num].base_high = (base >> 24) & 0xFF;
 
-  //start with the top
-  descriptor =  base         & 0xFF000000; //base direct map
-  descriptor |= (base >> 16) & 0x000000FF; //base 23-16:7-0
-  descriptor |= (flags << 8) & 0x00F0FF00; //flags 16-11:24-19 7-0:15-8
-  descriptor |= limit        & 0x000F0000; //limit direct map
+    /* Setup the descriptor limits */
+    gdt[num].limit_low = (limit & 0xFFFF);
+    gdt[num].granularity = ((limit >> 16) & 0x0F);
 
-  //end with the bottom
-  descriptor <<= 32;
-
-  descriptor |= (base << 16) & 0xFFFF0000; //base 15-0:31-16
-  descriptor |= limit        & 0x0000FFFF; //limit direct map
-
-  memcpy(&gdt[num], &descriptor, sizeof(uint64_t));
+    /* Finally, set up the granularity and access flags */
+    gdt[num].granularity |= (gran & 0xF0);
+    gdt[num].access = access;
 }
 
 #endif /* INCLUDE_GDT_H */ 
